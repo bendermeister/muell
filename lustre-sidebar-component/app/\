@@ -1,0 +1,90 @@
+import counter
+import gleam/pair
+import gleam/result
+import gleam/uri
+import hello
+import lustre
+import lustre/attribute.{class, href}
+import lustre/effect
+import lustre/element/html.{a, div, h1, text}
+import modem
+import route
+
+pub type Page {
+  Hello(hello.Model)
+  Counter(counter.Model)
+  None
+}
+
+pub type Msg {
+  ChangedPage(route: route.Route)
+  UpdateCounter
+  UpdateHello
+}
+
+pub type Model {
+  Model(page: Page)
+}
+
+fn init(_) {
+  let route =
+    modem.initial_uri()
+    |> result.map(route.from_uri)
+    |> result.unwrap(route.Home)
+
+  let page = case route {
+    route.Home -> None
+    route.Counter -> Counter(counter.init())
+    route.Hello -> Hello(hello.init())
+  }
+
+  let model = Model(page:)
+
+  let effect =
+    modem.init(fn(uri) {
+      uri
+      |> route.from_uri
+      |> ChangedPage
+    })
+
+  #(model, effect)
+}
+
+fn view(model: Model) {
+  case model.page {
+    Hello(page) -> todo
+    Counter(page) -> todo
+    None -> todo
+  }
+}
+
+fn view_none(_) {
+  div([class("m-16 p-2 border w-fit flex flex-col gap-2")], [
+    a([href("/counter")], [text("counter")]),
+    a([href("/hello")], [text("hello")]),
+  ])
+}
+
+fn update(_: Model, msg: Msg) {
+  case msg {
+    ChangedPage(route:) ->
+      case route {
+        route.Home -> Model(page: None)
+        route.Counter ->
+          counter.init()
+          |> Counter
+          |> Model
+        route.Hello ->
+          hello.init()
+          |> Hello
+          |> Model
+      }
+  }
+  |> pair.new(effect.none())
+}
+
+pub fn main() {
+  let assert Ok(_) =
+    lustre.application(init, update, view)
+    |> lustre.start("#app", Nil)
+}
