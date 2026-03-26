@@ -8,6 +8,7 @@ import lustre/element
 import lustre/element/html.{a, div, text}
 import modem
 import route
+import sidebar
 
 pub type Page {
   Hello(hello.Model)
@@ -50,11 +51,7 @@ fn init(_) {
 }
 
 fn view(model: Model) {
-  case model.page {
-    Hello(page) -> hello.view(page) |> element.map(UpdateHello)
-    Counter(page) -> counter.view(page) |> element.map(UpdateCounter)
-    None -> view_none()
-  }
+  sidebar.element([], [div([class("w-full h-full bg-red-200")], [])])
 }
 
 fn view_none() {
@@ -100,6 +97,7 @@ fn update(model: Model, msg: Msg) -> #(Model, effect.Effect(Msg)) {
 }
 
 pub fn main() {
+  let assert Ok(_) = sidebar.register()
   let assert Ok(_) =
     lustre.application(init, update, view)
     |> lustre.start("#app", Nil)
